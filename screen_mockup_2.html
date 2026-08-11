@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; connect-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+<title>日報生成アプリ 画面モックアップ</title>
+<style>
+  :root{
+    --bg:#eef1f4;
+    --surface:#ffffff;
+    --surface-alt:#f7f8fa;
+    --border:#e1e6eb;
+    --border-soft:#ecefF2;
+    --text-primary:#1c2430;
+    --text-secondary:#5f6b7a;
+    --text-tertiary:#98a2b0;
+    --accent:#2f5d82;
+    --accent-dark:#234a68;
+    --accent-soft:#e6eef4;
+    --proj-a:#2f746d;
+    --proj-a-soft:#e4f0ee;
+    --proj-b:#a8672d;
+    --proj-b-soft:#f5ece0;
+    --proj-c:#5b5fa8;
+    --proj-c-soft:#ecebf6;
+    --success:#2f8f5b;
+    --success-soft:#e6f4ec;
+    --danger:#c1462f;
+    --radius-lg:14px;
+    --radius-md:10px;
+    --radius-sm:7px;
+    --shadow-card:0 1px 2px rgba(20,30,40,.05), 0 6px 16px rgba(20,30,40,.06);
+    --shadow-pop:0 10px 30px rgba(20,30,40,.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 500px at 15% -10%, #f4f7f9 0%, transparent 60%),
+      var(--bg);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    color:var(--text-primary);
+    display:flex;
+    justify-content:center;
+    padding:40px 16px 80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .note{
+    max-width:900px;
+    margin:0 auto 20px;
+    color:var(--text-secondary);
+    font-size:13px;
+    line-height:1.7;
+  }
+  .note b{color:var(--text-primary);}
+
+  /* ===== App window frame ===== */
+  .window{
+    width:900px;
+    max-width:100%;
+    background:var(--surface);
+    border-radius:16px;
+    box-shadow:var(--shadow-pop);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .titlebar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 20px;
+    background:linear-gradient(180deg,#25415a,var(--accent-dark));
+    color:#fff;
+  }
+  .titlebar-left{display:flex;align-items:center;gap:10px;}
+  .titlebar-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);}
+  .titlebar-title{font-size:13px;font-weight:600;letter-spacing:.03em;}
+  .titlebar-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  /* ===== Screen switcher (mock navigation only) ===== */
+  .tabsbar{
+    display:flex;
+    gap:4px;
+    padding:10px 16px;
+    background:var(--surface-alt);
+    border-bottom:1px solid var(--border);
+  }
+  .tabbtn{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:var(--text-secondary);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .tabbtn:hover{background:#e9edf1;color:var(--text-primary);}
+  .tabbtn.active{background:var(--accent);color:#fff;}
+
+  .screen{display:none;padding:22px 24px 26px;}
+  .screen.active{display:block;}
+
+  /* ===== Shared bits ===== */
+  .row{display:flex;align-items:center;justify-content:space-between;}
+  .field-label{font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:.02em;margin-bottom:6px;display:block;}
+  .ghost-btn{
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-secondary);
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:600;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .primary-btn{
+    border:none;
+    background:var(--accent);
+    color:#fff;
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:700;
+    padding:11px 20px;
+    border-radius:9px;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(47,93,130,.28);
+  }
+  .primary-btn:hover{background:var(--accent-dark);}
+  select.pd{
+    appearance:none;
+    -webkit-appearance:none;
+    font-family:inherit;
+    background:var(--surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0L5 6L10 0Z" fill="%235f6b7a"/></svg>') no-repeat right 10px center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:9px 28px 9px 12px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  select.pd:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  textarea, input[type=text]{
+    width:100%;
+    font-family:inherit;
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:10px 12px;
+    font-size:13.5px;
+    color:var(--text-primary);
+    background:var(--surface-alt);
+    resize:none;
+  }
+  textarea:focus, input:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);}
+
+  /* ===== 作業ブロック タイムライン ===== */
+  .timeline{display:flex;flex-direction:column;gap:12px;}
+  .block-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-card);overflow:hidden;position:relative;
+  }
+  .block-head{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .block-time{font-size:13px;font-weight:800;color:var(--text-primary);font-variant-numeric:tabular-nums;min-width:98px;}
+  .block-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .block-project{font-size:13.5px;font-weight:800;}
+  .block-tasklabel{
+    font-size:11px;font-weight:700;color:var(--text-secondary);
+    background:var(--surface-alt);border:1px solid var(--border);border-radius:20px;padding:2px 9px;
+  }
+  .block-status{
+    margin-left:auto;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;
+  }
+  .block-status.done{background:var(--success-soft);color:var(--success);}
+  .block-status.wip{background:var(--accent-soft);color:var(--accent-dark);}
+  .block-actions{display:flex;gap:4px;}
+  .block-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;}
+  .progress-row{display:flex;align-items:center;gap:10px;}
+  .progress-bar{flex:1;height:8px;border-radius:5px;background:var(--surface-alt);border:1px solid var(--border-soft);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:5px;}
+  .progress-num{font-size:12.5px;font-weight:800;min-width:38px;text-align:right;font-variant-numeric:tabular-nums;}
+  .add-block-btn{
+    border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:14px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    color:var(--accent);font-weight:700;font-size:13.5px;cursor:pointer;background:var(--surface-alt);
+  }
+
+  /* ===== S-01 日報入力 ===== */
+  .toprow{margin-bottom:16px;}
+  .datefield{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface-alt);border:1px solid var(--border);
+    border-radius:9px;padding:8px 14px;
+  }
+  .datefield .d{font-size:15px;font-weight:700;}
+  .datefield .w{font-size:12px;color:var(--text-secondary);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:20px;font-weight:700;}
+
+  .proj-tabs{display:flex;gap:8px;margin:18px 0 14px;flex-wrap:wrap;}
+  .proj-tab{
+    display:flex;align-items:center;gap:8px;
+    padding:9px 14px 9px 10px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    font-size:13px;font-weight:700;
+    cursor:pointer;
+    color:var(--text-secondary);
+  }
+  .proj-tab .dot{width:8px;height:8px;border-radius:50%;}
+  .proj-tab.active{background:var(--surface);border-color:var(--proj-a);color:var(--text-primary);box-shadow:0 0 0 1px var(--proj-a) inset;}
+  .proj-tab.addnew{color:var(--accent);border-style:dashed;font-weight:700;}
+
+  .form-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-card);
+    overflow:hidden;
+  }
+  .form-card-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;
+    background:var(--proj-a-soft);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .form-card-head .name{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;color:var(--proj-a);}
+  .form-card-head .name .bar{width:5px;height:20px;border-radius:3px;background:var(--proj-a);}
+  .icon-btn{
+    width:28px;height:28px;border-radius:7px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text-secondary);font-size:12px;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px;
+  }
+  .form-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+
+  .status-seg{display:inline-flex;background:var(--surface-alt);border:1px solid var(--border);border-radius:9px;padding:3px;}
+  .status-seg span{
+    padding:6px 14px;font-size:12.5px;font-weight:700;color:var(--text-secondary);border-radius:7px;cursor:pointer;
+  }
+  .status-seg span.sel{background:var(--success);color:#fff;box-shadow:0 2px 6px rgba(47,143,91,.3);}
+
+  .time-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;}
+  .time-group{display:flex;flex-direction:column;gap:6px;}
+  .time-group .lbl{font-size:11.5px;color:var(--text-tertiary);font-weight:700;}
+  .time-selects{display:flex;align-items:center;gap:4px;}
+  .time-selects select{width:74px;}
+  .time-arrow{color:var(--text-tertiary);font-size:16px;padding:0 4px 8px;}
+  .duration-chip{
+    margin-left:auto;
+    background:var(--accent-soft);color:var(--accent-dark);
+    font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:20px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .duration-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);}
+
+  .footer-actions{display:flex;justify-content:flex-end;padding:16px 18px;background:var(--surface-alt);border-top:1px solid var(--border-soft);}
+
+  /* ===== S-02 案件管理 ===== */
+  .proj-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-card);
+  }
+  .proj-row .left{display:flex;align-items:center;gap:12px;}
+  .proj-row .bar{width:5px;height:30px;border-radius:3px;}
+  .proj-row .pname{font-size:14.5px;font-weight:800;}
+  .proj-row .pmeta{font-size:11.5px;color:var(--text-tertiary);margin-top:2px;}
+  .proj-row .actions{display:flex;gap:6px;}
+  .add-proj-card{
+    border:1.5px dashed var(--border);border-radius:12px;padding:16px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    color:var(--accent);font-weight:700;font-size:13.5px;cursor:pointer;
+    background:var(--surface-alt);
+  }
+
+  /* ===== S-03 プレビュー ===== */
+  .preview-wrap{display:flex;gap:20px;flex-wrap:wrap;}
+  .teams-mock{
+    flex:1;min-width:320px;
+    background:#f5f6fa;border:1px solid var(--border);border-radius:12px;padding:16px;
+  }
+  .teams-bubble{
+    background:var(--surface);border-radius:10px;padding:16px 18px;
+    box-shadow:var(--shadow-card);font-size:13px;line-height:1.9;white-space:pre-wrap;
+  }
+  .teams-bubble .h{font-weight:800;font-size:13.5px;margin-bottom:8px;}
+  .teams-bubble .proj-line{font-weight:800;display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .teams-bubble .proj-line .dot{width:7px;height:7px;border-radius:50%;}
+  .side-panel{width:230px;display:flex;flex-direction:column;gap:12px;}
+  .copy-box{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow-card);
+    text-align:center;
+  }
+  .toast{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--success-soft);color:var(--success);font-size:12px;font-weight:700;
+    padding:7px 12px;border-radius:20px;margin-top:10px;
+  }
+
+  /* ===== S-04 過去日報一覧 ===== */
+  .hist-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:13px 16px;margin-bottom:9px;box-shadow:var(--shadow-card);cursor:pointer;
+  }
+  .hist-row:hover{border-color:var(--accent);}
+  .hist-date{font-size:14px;font-weight:800;width:120px;}
+  .hist-tags{display:flex;gap:6px;flex:1;flex-wrap:wrap;}
+  .hist-tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;}
+  .hist-arrow{color:var(--text-tertiary);}
+</style>
+</head>
+<body>
+
+<div style="width:900px;max-width:100%;">
+  <div class="note">これは<b>操作イメージ確認用の静的モックアップ</b>です。外部フォント/CDN等を使用せず、オフラインで表示できます。画面上部のタブで4画面（日報入力/案件管理/プレビュー/過去日報）を切り替えられます。時間・分のプルダウンは選択すると所要時間表示が更新されますが、それ以外の保存・登録などの機能は動作しません。</div>
+
+  <div class="window">
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-dot"></span><span class="titlebar-dot"></span><span class="titlebar-dot"></span>
+      </div>
+      <div style="text-align:center;">
+        <div class="titlebar-title">日報アプリ</div>
+      </div>
+      <div class="titlebar-sub">オフライン動作</div>
+    </div>
+
+    <div class="tabsbar">
+      <button class="tabbtn active" onclick="showScreen('s1',this)">日報入力</button>
+      <button class="tabbtn" onclick="showScreen('s2',this)">案件管理</button>
+      <button class="tabbtn" onclick="showScreen('s3',this)">プレビュー</button>
+      <button class="tabbtn" onclick="showScreen('s4',this)">過去日報</button>
+    </div>
+
+    <!-- ===== S-01 日報入力 ===== -->
+    <div class="screen active" id="s1">
+      <div class="row toprow">
+        <div class="datefield">
+          <span class="d">2026年8月11日</span>
+          <span class="w">火曜日</span>
+        </div>
+        <button class="ghost-btn">過去日報一覧 →</button>
+      </div>
+
+      <div class="timeline">
+
+        <!-- ブロック1: 案件A / MTG（編集展開中の例） -->
+        <div class="block-card">
+          <div class="block-head">
+            <span class="block-time">09:00–10:00</span>
+            <span class="block-dot" style="background:var(--proj-a)"></span>
+            <span class="block-project">案件A</span>
+            <span class="block-tasklabel">MTG</span>
+            <span class="block-status done">完了</span>
+            <div class="block-actions"><button class="icon-btn">✎</button><button class="icon-btn">🗑</button></div>
+          </div>
+          <div class="block-body">
+            <div>
+              <label class="field-label">作業内容</label>
+              <textarea rows="2">要件確認MTG</textarea>
+            </div>
+            <div class="row" style="gap:16px;align-items:flex-start;">
+              <div style="flex:1;">
+                <label class="field-label">進捗状況</label>
+                <div class="status-seg">
+                  <span>進行中</span><span class="sel">完了</span><span>保留</span>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <label class="field-label">進捗率（任意）</label>
+                <div class="progress-row">
+                  <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--success);"></div></div>
+                  <span class="progress-num">100%</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">開始・終了時刻</label>
+              <div class="time-row">
+                <div class="time-group"><span class="lbl">開始</span>
+                  <div class="time-selects">
+                    <select class="pd" onchange="calcDuration()" id="sh"><option>08</option><option selected>09</option></select>
+                    <span>:</span>
+                    <select class="pd" onchange="calcDuration()" id="sm"><option selected>00</option><option>05</option></select>
+                  </div>
+                </div>
+                <span class="time-arrow">→</span>
+                <div class="time-group"><span class="lbl">終了</span>
+                  <div class="time-selects">
+                    <select class="pd" onchange="calcDuration()" id="eh"><option>09</option><option selected>10</option></select>
+                    <span>:</span>
+                    <select class="pd" onchange="calcDuration()" id="em"><option selected>00</option><option>05</option></select>
+                  </div>
+                </div>
+                <div class="duration-chip" id="durchip">所要時間 1時間</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ブロック2: 案件B / 資料作成（折りたたみ表示の例） -->
+        <div class="block-card">
+          <div class="block-head">
+            <span class="block-time">10:15–11:30</span>
+            <span class="block-dot" style="background:var(--proj-b)"></span>
+            <span class="block-project">案件B</span>
+            <span class="block-tasklabel">資料作成</span>
+            <span class="block-status wip">進行中</span>
+            <div class="block-actions"><button class="icon-btn">✎</button><button class="icon-btn">🗑</button></div>
+          </div>
+          <div class="block-body">
+            <div style="font-size:13px;color:var(--text-secondary);">提案資料のドラフト作成</div>
+            <div class="progress-row" style="max-width:260px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:40%;background:var(--proj-b);"></div></div>
+              <span class="progress-num">40%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ブロック3: 案件Aに再度戻ってきた例（同一案件が時系列上で往復する様子） -->
+        <div class="block-card">
+          <div class="block-head">
+            <span class="block-time">11:30–12:00</span>
+            <span class="block-dot" style="background:var(--proj-a)"></span>
+            <span class="block-project">案件A</span>
+            <span class="block-tasklabel">資料作成</span>
+            <span class="block-status wip">進行中</span>
+            <div class="block-actions"><button class="icon-btn">✎</button><button class="icon-btn">🗑</button></div>
+          </div>
+          <div class="block-body">
+            <div style="font-size:13px;color:var(--text-secondary);">MTG議事録・指摘事項を設計書へ反映</div>
+            <div class="progress-row" style="max-width:260px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:70%;background:var(--proj-a);"></div></div>
+              <span class="progress-num">70%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-block-btn">＋ 作業ブロックを追加</div>
+      </div>
+
+      <div class="footer-actions" style="margin-top:16px;justify-content:flex-end;background:transparent;border:none;padding:0;">
+        <button class="primary-btn">プレビューを表示 →</button>
+      </div>
+    </div>
+
+    <!-- ===== S-02 案件管理 ===== -->
+    <div class="screen" id="s2">
+      <div class="row" style="margin-bottom:16px;">
+        <div style="font-size:15px;font-weight:800;">案件一覧</div>
+        <button class="ghost-btn">アーカイブを表示</button>
+      </div>
+
+      <div class="proj-row">
+        <div class="left">
+          <div class="bar" style="background:var(--proj-a)"></div>
+          <div><div class="pname">案件A</div><div class="pmeta">登録日: 2026/07/01・使用回数 18回</div></div>
+        </div>
+        <div class="actions"><button class="icon-btn">✎</button><button class="icon-btn">📦</button><button class="icon-btn">🗑</button></div>
+      </div>
+      <div class="proj-row">
+        <div class="left">
+          <div class="bar" style="background:var(--proj-b)"></div>
+          <div><div class="pname">案件B</div><div class="pmeta">登録日: 2026/07/03・使用回数 12回</div></div>
+        </div>
+        <div class="actions"><button class="icon-btn">✎</button><button class="icon-btn">📦</button><button class="icon-btn">🗑</button></div>
+      </div>
+      <div class="proj-row">
+        <div class="left">
+          <div class="bar" style="background:var(--proj-c)"></div>
+          <div><div class="pname">案件C</div><div class="pmeta">登録日: 2026/08/05・使用回数 3回</div></div>
+        </div>
+        <div class="actions"><button class="icon-btn">✎</button><button class="icon-btn">📦</button><button class="icon-btn">🗑</button></div>
+      </div>
+
+      <div class="add-proj-card">＋ 新規案件を登録</div>
+    </div>
+
+    <!-- ===== S-03 プレビュー ===== -->
+    <div class="screen" id="s3">
+      <div class="preview-wrap">
+        <div class="teams-mock">
+          <div class="teams-bubble">
+            <div class="h">【日報】2026年08月11日（火）</div>
+
+            <div class="proj-line">09:00-10:00 <span class="dot" style="background:var(--proj-a)"></span>案件A（MTG）</div>
+            ・作業内容：要件確認MTG
+            ・進捗状況：完了
+
+            <div class="proj-line">10:15-11:30 <span class="dot" style="background:var(--proj-b)"></span>案件B（資料作成）</div>
+            ・作業内容：提案資料のドラフト作成
+            ・進捗状況：進行中（40%）
+
+            <div class="proj-line">11:30-12:00 <span class="dot" style="background:var(--proj-a)"></span>案件A（資料作成）</div>
+            ・作業内容：MTG議事録・指摘事項を設計書へ反映
+            ・進捗状況：進行中（70%）
+
+            <div style="margin-top:14px;color:var(--text-secondary);">本日の所感・共有事項：特になし</div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="copy-box">
+            <button class="primary-btn" style="width:100%;">📋 クリップボードにコピー</button>
+            <div class="toast">✓ コピーしました</div>
+          </div>
+          <button class="ghost-btn" style="width:100%;padding:10px;">＜ 入力に戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== S-04 過去日報一覧 ===== -->
+    <div class="screen" id="s4">
+      <div style="font-size:15px;font-weight:800;margin-bottom:16px;">過去日報一覧</div>
+
+      <div class="hist-row">
+        <div class="hist-date">08/11（火）</div>
+        <div class="hist-tags">
+          <span class="hist-tag" style="background:var(--proj-a-soft);color:var(--proj-a);">案件A</span>
+          <span class="hist-tag" style="background:var(--proj-b-soft);color:var(--proj-b);">案件B</span>
+        </div>
+        <div class="hist-arrow">›</div>
+      </div>
+      <div class="hist-row">
+        <div class="hist-date">08/08（土）</div>
+        <div class="hist-tags">
+          <span class="hist-tag" style="background:var(--proj-a-soft);color:var(--proj-a);">案件A</span>
+        </div>
+        <div class="hist-arrow">›</div>
+      </div>
+      <div class="hist-row">
+        <div class="hist-date">08/07（金）</div>
+        <div class="hist-tags">
+          <span class="hist-tag" style="background:var(--proj-c-soft);color:var(--proj-c);">案件C</span>
+          <span class="hist-tag" style="background:var(--proj-a-soft);color:var(--proj-a);">案件A</span>
+          <span class="hist-tag" style="background:var(--proj-b-soft);color:var(--proj-b);">案件B</span>
+        </div>
+        <div class="hist-arrow">›</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showScreen(id, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function calcDuration(){
+  const sh=+document.getElementById('sh').value, sm=+document.getElementById('sm').value;
+  const eh=+document.getElementById('eh').value, em=+document.getElementById('em').value;
+  let mins=(eh*60+em)-(sh*60+sm);
+  const chip=document.getElementById('durchip');
+  if(mins<0){ chip.textContent='終了は開始より後の時刻を選んでください'; chip.style.color='#c1462f'; chip.style.background='#fbe9e5'; return; }
+  chip.style.color=''; chip.style.background='';
+  const h=Math.floor(mins/60), m=mins%60;
+  chip.textContent = `所要時間 ${h>0?h+'時間':''}${m}分`;
+}
+</script>
+</body>
+</html>

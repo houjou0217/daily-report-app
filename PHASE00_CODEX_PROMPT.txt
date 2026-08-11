@@ -1,0 +1,36 @@
+Phase 00「プロジェクト初期化」を実装してください。
+
+最初に必ず以下を読んでください。
+- AGENTS.md
+- 01_要件定義書.md
+- 02_設計書.md
+- 04_開発フェーズ計画書.md
+- 05_Phase00実装仕様.md
+- screen_mockup_2.html
+
+05_Phase00実装仕様.md をPhase00の具体的な実装基準として扱ってください。
+
+進め方:
+1. 現在のリポジトリ状態を確認してください。
+2. Phase00のスコープ・完了条件を整理してください。
+3. 実装前に、変更予定ファイルと検証予定コマンドを簡潔に示してください。
+4. Electron + TypeScript + Electron Forge + Webpackで最小構成を実装してください。
+5. React/Vue/CSS frameworkは導入しないでください。
+6. main / preload / renderer を分離し、contextIsolation=true、nodeIntegration=false、sandbox=trueにしてください。
+7. 外部通信、外部フォント、CDN、telemetry、auto updateを実装しないでください。
+8. Windows/Mac共通で動く scripts/check-network.mjs を作成してください。
+9. Vitestを導入し、最低限のsmoke testを追加してください。
+10. npm run typecheck、npm run test、npm run check:network、npm run package を実行してください。
+11. 可能なら現在の環境で npm start / npm run make も確認してください。
+12. git diffを確認し、既存の仕様書やモックを意図せず変更していないことを確認してください。
+13. 完了条件を PASS / FAIL / NOT VERIFIED で1項目ずつ報告してください。
+14. Windows/Macのうち現在実機確認できないOSはNOT VERIFIEDとしてください。
+15. スコープ外の改善は実装せず、最後にメモとして提示してください。
+
+重要:
+- commit / tag / merge は行わないでください。
+- 実在顧客・案件・業務データを使用しないでください。
+- 依存追加は必要最小限にしてください。
+- テストできなかった項目を推測でPASSにしないでください。
+
+最後にコミットメッセージ案だけ提示してください。
