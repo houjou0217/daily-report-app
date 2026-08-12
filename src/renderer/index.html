@@ -12,9 +12,50 @@
   </head>
   <body>
     <main class="app-shell" aria-labelledby="app-title">
-      <p class="eyebrow">OFFLINE DESKTOP APP</p>
-      <h1 id="app-title">日報生成アプリ</h1>
-      <p class="description">完全ローカル完結で、日報作成を支援します。</p>
+      <header class="app-header">
+        <p class="eyebrow">OFFLINE DESKTOP APP</p>
+        <h1 id="app-title">案件管理</h1>
+        <p class="description">日報で利用する案件をローカルで管理します。</p>
+      </header>
+
+      <section class="project-panel" aria-labelledby="project-list-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="project-list-title">案件一覧</h2>
+            <p class="panel-description" id="project-count">読み込み中…</p>
+          </div>
+          <button class="secondary-button" id="archive-toggle" type="button" aria-pressed="false">
+            アーカイブを表示
+          </button>
+        </div>
+
+        <form class="project-form" id="project-form" novalidate>
+          <input id="project-id" type="hidden" />
+          <div class="form-heading">
+            <h3 id="form-title">新規案件を登録</h3>
+            <button class="text-button" id="form-cancel" type="button" hidden>編集をやめる</button>
+          </div>
+          <div class="form-fields">
+            <label>
+              <span>案件名 <strong aria-hidden="true">*</strong></span>
+              <input id="project-name" name="name" type="text" maxlength="100" required autocomplete="off" />
+            </label>
+            <label>
+              <span>案件コード</span>
+              <input id="project-code" name="code" type="text" maxlength="50" autocomplete="off" />
+            </label>
+            <label class="color-field">
+              <span>案件カラー</span>
+              <input id="project-color" name="color" type="color" value="#2f746d" />
+            </label>
+          </div>
+          <p class="form-message" id="form-message" role="alert" hidden></p>
+          <button class="primary-button" id="form-submit" type="submit">登録する</button>
+        </form>
+
+        <div class="project-list" id="project-list" aria-live="polite"></div>
+        <p class="empty-state" id="empty-state" hidden>表示する案件はありません。</p>
+      </section>
       <p class="status" id="app-status" role="status">起動準備完了</p>
     </main>
   </body>

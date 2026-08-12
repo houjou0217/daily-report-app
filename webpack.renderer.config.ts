@@ -19,6 +19,9 @@ const config: Configuration = {
   ],
   resolve: {
     extensions: ['.js', '.ts'],
+    extensionAlias: {
+      '.js': ['.js', '.ts'],
+    },
   },
 };
 
