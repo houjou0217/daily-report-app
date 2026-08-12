@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { LocalDataStore } from '../data/local-data-store.js';
 import { registerProjectIpc } from './project-ipc.js';
+import { registerReportIpc } from './report-ipc.js';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -37,7 +38,9 @@ app.on('web-contents-created', (_event, contents) => {
 });
 
 app.whenReady().then(() => {
-  registerProjectIpc(ipcMain, new LocalDataStore(app.getPath('userData')));
+  const dataStore = new LocalDataStore(app.getPath('userData'));
+  registerProjectIpc(ipcMain, dataStore);
+  registerReportIpc(ipcMain, dataStore);
   createMainWindow();
 
   app.on('activate', () => {

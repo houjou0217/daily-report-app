@@ -12,6 +12,10 @@ const api: DailyReportApi = {
     delete: (id) =>
       ipcRenderer.invoke('projects:delete', id) as ReturnType<DailyReportApi['projects']['delete']>,
   },
+  reports: {
+    load: (date) => ipcRenderer.invoke('reports:load', date) as ReturnType<DailyReportApi['reports']['load']>,
+    save: (report) => ipcRenderer.invoke('reports:save', report) as ReturnType<DailyReportApi['reports']['save']>,
+  },
 };
 
 contextBridge.exposeInMainWorld('dailyReport', api);

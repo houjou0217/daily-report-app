@@ -60,8 +60,10 @@ export function assertWorkBlock(value: unknown): asserts value is WorkBlock {
   assertString(value.projectId, 'block.projectId', false);
   assertString(value.projectName, 'block.projectName', false);
   assertString(value.taskLabel, 'block.taskLabel');
-  assertString(value.workContent, 'block.workContent', false);
-  assertString(value.status, 'block.status', false);
+  // Reports are saved while users are still entering a work block. Required-field
+  // feedback is applied when generating the final report, not while preserving a draft.
+  assertString(value.workContent, 'block.workContent');
+  assertString(value.status, 'block.status');
   assertString(value.statusDetail, 'block.statusDetail');
   assertString(value.startTime, 'block.startTime');
   assertString(value.endTime, 'block.endTime');

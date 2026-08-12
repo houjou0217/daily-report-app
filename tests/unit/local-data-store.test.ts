@@ -87,6 +87,20 @@ describe('LocalDataStore', () => {
     await expect(store.loadReport(report.date)).resolves.toBeUndefined();
   });
 
+  it('saves an unfinished work block as a local draft', async () => {
+    const store = new LocalDataStore(directory);
+    const draft = createReport();
+    draft.blocks[0] = {
+      ...draft.blocks[0]!,
+      taskLabel: '',
+      workContent: '',
+      status: '',
+    };
+
+    await store.saveReport(draft);
+    await expect(store.loadReport(draft.date)).resolves.toEqual(draft);
+  });
+
   it('rejects invalid report data before it is written', async () => {
     const store = new LocalDataStore(directory);
     const report = createReport();
