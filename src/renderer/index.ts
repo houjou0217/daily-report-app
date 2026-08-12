@@ -1,4 +1,9 @@
 import type { Project, Report, WorkBlock } from '../domain/models.js';
+import {
+  calculateDuration,
+  isEndTimeBeforeStartTime,
+  sortWorkBlocksByStartTime,
+} from '../domain/time.js';
 import type {} from '../preload/api.js';
 
 const getElement = <ElementType extends HTMLElement>(selector: string): ElementType => {
@@ -75,13 +80,72 @@ const saveReport = async (): Promise<void> => {
   }
 };
 
-const updateBlock = (id: string, change: Partial<WorkBlock>): void => {
+const updateBlock = (id: string, change: Partial<WorkBlock>, rerender = false): void => {
   const block = report.blocks.find((candidate) => candidate.id === id);
   if (block === undefined) {
     return;
   }
   Object.assign(block, change);
+  if (rerender) {
+    report.blocks = sortWorkBlocksByStartTime(report.blocks);
+    renderBlocks();
+  }
   scheduleSave();
+};
+
+const createTimeSelect = (options: readonly string[], value: string): HTMLSelectElement => {
+  const select = document.createElement('select');
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = '--';
+  emptyOption.selected = value.length === 0;
+  select.append(emptyOption);
+  for (const optionValue of options) {
+    const option = document.createElement('option');
+    option.value = optionValue;
+    option.textContent = optionValue;
+    option.selected = optionValue === value;
+    select.append(option);
+  }
+  return select;
+};
+
+const addTimeField = (
+  body: HTMLElement,
+  labelText: string,
+  time: string,
+  onChange: (nextTime: string) => void,
+): void => {
+  const [initialHour = '', initialMinute = ''] = time.split(':');
+  const label = document.createElement('label');
+  label.className = 'block-field time-field';
+  const caption = document.createElement('span');
+  caption.textContent = labelText;
+  const selects = document.createElement('div');
+  selects.className = 'time-selects';
+  const hourSelect = createTimeSelect(
+    Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0')),
+    initialHour,
+  );
+  const separator = document.createElement('span');
+  separator.textContent = ':';
+  separator.setAttribute('aria-hidden', 'true');
+  const minuteSelect = createTimeSelect(
+    Array.from({ length: 12 }, (_, minute) => String(minute * 5).padStart(2, '0')),
+    initialMinute,
+  );
+  const updateTime = (): void => {
+    onChange(
+      hourSelect.value.length === 0 || minuteSelect.value.length === 0
+        ? ''
+        : `${hourSelect.value}:${minuteSelect.value}`,
+    );
+  };
+  hourSelect.addEventListener('change', updateTime);
+  minuteSelect.addEventListener('change', updateTime);
+  selects.append(hourSelect, separator, minuteSelect);
+  label.append(caption, selects);
+  body.append(label);
 };
 
 const addTextField = (
@@ -139,7 +203,9 @@ const renderBlocks = (): void => {
     const header = document.createElement('header');
     header.className = 'block-header';
     const title = document.createElement('h3');
-    title.textContent = `作業ブロック ${index + 1}`;
+    title.textContent = block.startTime.length === 0
+      ? `作業ブロック ${index + 1}`
+      : `${block.startTime}〜 ${block.projectName}`;
     const actions = document.createElement('div');
     actions.className = 'block-actions';
 
@@ -208,6 +274,24 @@ const renderBlocks = (): void => {
       updateBlock(block.id, { workContent }),
     );
 
+    addTimeField(body, '開始時刻', block.startTime, (startTime) =>
+      updateBlock(block.id, { startTime }, true),
+    );
+    addTimeField(body, '終了時刻', block.endTime, (endTime) => updateBlock(block.id, { endTime }, true));
+
+    const timeFeedback = document.createElement('p');
+    timeFeedback.className = 'time-feedback block-field-wide';
+    if (isEndTimeBeforeStartTime(block.startTime, block.endTime)) {
+      timeFeedback.classList.add('time-error');
+      timeFeedback.textContent = '終了時刻は開始時刻以降に設定してください。';
+    } else {
+      const duration = calculateDuration(block.startTime, block.endTime);
+      timeFeedback.textContent = duration === undefined
+        ? '開始・終了時刻を選ぶと所要時間を表示します。'
+        : `所要時間：${duration}`;
+    }
+    body.append(timeFeedback);
+
     const statusField = document.createElement('label');
     statusField.className = 'block-field';
     const statusCaption = document.createElement('span');
@@ -268,6 +352,7 @@ const loadReport = async (date: string): Promise<void> => {
   try {
     const savedReport = await window.dailyReport.reports.load(date);
     report = savedReport ?? createEmptyReport(date);
+    report.blocks = sortWorkBlocksByStartTime(report.blocks);
     commentInput.value = report.comment;
     renderBlocks();
     setStatus(savedReport === undefined ? '新しい日報を作成しました' : '保存済みの日報を復元しました');

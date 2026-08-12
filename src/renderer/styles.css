@@ -82,6 +82,14 @@ h2, h3 { margin-bottom: 0; }
 
 .block-field textarea, .comment-field textarea { min-height: 72px; resize: vertical; }
 
+.time-selects { display: flex; align-items: center; gap: 6px; }
+
+.time-selects select { width: 100%; min-width: 0; }
+
+.time-feedback { margin: 0; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-alt); color: var(--muted); font-size: .84rem; font-weight: 700; }
+
+.time-error { border-color: #dc9d9d; background: #fff3f3; color: var(--danger); }
+
 .add-block-button { width: 100%; margin-top: 16px; padding: 13px; border: 1.5px dashed var(--accent); border-radius: 12px; background: var(--surface-alt); color: var(--accent-strong); font-weight: 800; }
 
 .add-block-button:hover:not(:disabled) { background: var(--accent-soft); }

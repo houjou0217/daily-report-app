@@ -109,6 +109,14 @@ describe('LocalDataStore', () => {
     await expect(store.saveReport(report)).rejects.toBeInstanceOf(DataValidationError);
   });
 
+  it('rejects a report time that is not on a five-minute interval', async () => {
+    const store = new LocalDataStore(directory);
+    const report = createReport();
+    report.blocks[0]!.startTime = '09:07';
+
+    await expect(store.saveReport(report)).rejects.toBeInstanceOf(DataValidationError);
+  });
+
   it('rejects malformed local JSON data', async () => {
     await fs.writeFile(join(directory, 'projects.json'), '{"projects":"invalid"}', 'utf8');
 

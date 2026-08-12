@@ -1,5 +1,6 @@
 import { DataValidationError } from './errors.js';
 import type { Project, ProjectsDocument, Report, WorkBlock } from './models.js';
+import { isFiveMinuteTime } from './time.js';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -15,6 +16,13 @@ function assertDateTime(value: unknown, field: string): asserts value is string 
 
   if (Number.isNaN(Date.parse(value))) {
     throw new DataValidationError(`${field} must be an ISO date-time string.`);
+  }
+}
+
+function assertOptionalFiveMinuteTime(value: unknown, field: string): asserts value is string {
+  assertString(value, field);
+  if (value.length > 0 && !isFiveMinuteTime(value)) {
+    throw new DataValidationError(`${field} must use a five-minute HH:MM value.`);
   }
 }
 
@@ -65,8 +73,8 @@ export function assertWorkBlock(value: unknown): asserts value is WorkBlock {
   assertString(value.workContent, 'block.workContent');
   assertString(value.status, 'block.status');
   assertString(value.statusDetail, 'block.statusDetail');
-  assertString(value.startTime, 'block.startTime');
-  assertString(value.endTime, 'block.endTime');
+  assertOptionalFiveMinuteTime(value.startTime, 'block.startTime');
+  assertOptionalFiveMinuteTime(value.endTime, 'block.endTime');
   assertString(value.note, 'block.note');
 
   if (
