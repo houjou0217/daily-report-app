@@ -12,24 +12,34 @@
   </head>
   <body>
     <main class="app-shell" aria-labelledby="app-title">
-      <header class="app-header">
-        <p class="eyebrow">OFFLINE DESKTOP APP</p>
-        <h1 id="app-title">日報作成</h1>
-        <p class="description">作業ブロックを入力すると、ローカルへ自動保存します。</p>
-        <nav class="app-navigation" aria-label="画面切替">
-          <button class="nav-button is-active" id="nav-report" type="button" aria-current="page">日報作成</button>
-          <button class="nav-button" id="nav-projects" type="button">案件管理</button>
-        </nav>
+      <header class="titlebar">
+        <div class="titlebar-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="titlebar-name">
+          <h1 id="app-title">日報アプリ</h1>
+          <p>日々の作業を、見やすい日報に。</p>
+        </div>
+        <p class="titlebar-status">オフライン動作</p>
       </header>
+
+      <div class="app-content">
+        <header class="app-header">
+        <nav class="app-navigation" aria-label="画面切替">
+          <button class="nav-button is-active" id="nav-report" type="button" aria-current="page">日報入力</button>
+          <button class="nav-button" id="nav-projects" type="button">案件管理</button>
+          <button class="nav-button" id="nav-preview" type="button">プレビュー</button>
+          <button class="nav-button" id="nav-history" type="button">過去日報</button>
+        </nav>
+        </header>
 
       <section class="report-panel" aria-labelledby="report-title">
         <div class="report-toolbar">
-          <div>
-            <h2 id="report-title">対象日</h2>
+          <div class="date-field">
+            <h2 id="report-title" class="visually-hidden">対象日</h2>
             <label class="date-field" for="report-date">
               <span class="visually-hidden">対象日</span>
               <input id="report-date" type="date" />
             </label>
+            <span class="weekday-chip" id="report-weekday" aria-live="polite"></span>
           </div>
           <p class="save-status" id="app-status" role="status">読み込み中…</p>
           <button class="secondary-button" id="show-history" type="button">過去日報一覧</button>
@@ -40,6 +50,7 @@
         </p>
 
         <div class="block-list" id="block-list" aria-live="polite"></div>
+        <datalist id="task-label-options"></datalist>
         <p class="empty-state" id="empty-state" hidden>この日の作業ブロックはまだありません。</p>
         <button class="add-block-button" id="add-block" type="button" disabled>＋ 作業ブロックを追加</button>
 
@@ -56,13 +67,20 @@
             <p class="eyebrow">REPORT PREVIEW</p>
             <h2 id="preview-title">日報プレビュー</h2>
           </div>
-          <div class="preview-actions">
-            <button class="copy-button" id="copy-report" type="button">クリップボードにコピー</button>
-            <button class="secondary-button" id="return-to-input" type="button">＜ 入力に戻る</button>
-          </div>
         </div>
-        <pre class="preview-text" id="preview-text" tabindex="0"></pre>
-        <p class="copy-feedback" id="copy-feedback" role="status" hidden></p>
+        <div class="preview-layout">
+          <div class="preview-report-surface">
+            <div class="preview-project-legend" id="preview-project-legend" aria-label="日報に含まれる案件"></div>
+            <pre class="preview-text" id="preview-text" tabindex="0"></pre>
+          </div>
+          <aside class="preview-side-panel" aria-label="プレビュー操作">
+            <div class="copy-box">
+              <button class="copy-button" id="copy-report" type="button">クリップボードにコピー</button>
+              <p class="copy-feedback" id="copy-feedback" role="status" hidden></p>
+            </div>
+            <button class="secondary-button" id="return-to-input" type="button">＜ 入力に戻る</button>
+          </aside>
+        </div>
       </section>
 
       <section class="history-panel" id="history-panel" aria-labelledby="history-title" hidden>
@@ -87,7 +105,7 @@
           <button class="secondary-button" id="archive-toggle" type="button" aria-pressed="false">アーカイブを表示</button>
         </div>
 
-        <form class="project-form" id="project-form" novalidate>
+        <form class="project-form" id="project-form" novalidate hidden>
           <input id="project-id" type="hidden" />
           <div class="form-heading">
             <h3 id="form-title">新規案件を登録</h3>
@@ -112,7 +130,9 @@
         </form>
         <div class="project-list" id="project-list" aria-live="polite"></div>
         <p class="empty-state" id="project-empty-state" hidden>表示する案件はありません。</p>
+        <button class="add-project-button" id="show-project-form" type="button">＋ 新規案件を登録</button>
       </section>
+      </div>
     </main>
   </body>
 </html>
