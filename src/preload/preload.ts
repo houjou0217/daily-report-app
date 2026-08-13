@@ -13,6 +13,7 @@ const api: DailyReportApi = {
       ipcRenderer.invoke('projects:delete', id) as ReturnType<DailyReportApi['projects']['delete']>,
   },
   reports: {
+    listDates: () => ipcRenderer.invoke('reports:list-dates') as ReturnType<DailyReportApi['reports']['listDates']>,
     load: (date) => ipcRenderer.invoke('reports:load', date) as ReturnType<DailyReportApi['reports']['load']>,
     save: (report) => ipcRenderer.invoke('reports:save', report) as ReturnType<DailyReportApi['reports']['save']>,
   },

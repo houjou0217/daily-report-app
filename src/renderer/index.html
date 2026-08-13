@@ -28,6 +28,7 @@
             </label>
           </div>
           <p class="save-status" id="app-status" role="status">読み込み中…</p>
+          <button class="secondary-button" id="show-history" type="button">過去日報一覧</button>
         </div>
 
         <p class="project-notice" id="project-notice" hidden>
@@ -58,6 +59,18 @@
         </div>
         <pre class="preview-text" id="preview-text" tabindex="0"></pre>
         <p class="copy-feedback" id="copy-feedback" role="status" hidden></p>
+      </section>
+
+      <section class="history-panel" id="history-panel" aria-labelledby="history-title" hidden>
+        <div class="preview-heading">
+          <div>
+            <p class="eyebrow">REPORT HISTORY</p>
+            <h2 id="history-title">過去日報一覧</h2>
+          </div>
+          <button class="secondary-button" id="return-from-history" type="button">＜ 入力に戻る</button>
+        </div>
+        <p class="history-status" id="history-status" role="status">読み込み中…</p>
+        <div class="history-list" id="history-list"></div>
       </section>
     </main>
   </body>

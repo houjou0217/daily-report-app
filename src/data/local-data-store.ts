@@ -127,6 +127,22 @@ export class LocalDataStore {
     return this.files.remove(reportFileName(date));
   }
 
+  public async listReportDates(): Promise<string[]> {
+    const fileNames = await this.files.list(REPORTS_DIRECTORY);
+    return fileNames
+      .filter((fileName) => /^\d{4}-\d{2}-\d{2}\.json$/u.test(fileName))
+      .map((fileName) => fileName.slice(0, -'.json'.length))
+      .filter((date) => {
+        try {
+          assertReportDate(date);
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .sort((left, right) => right.localeCompare(left));
+  }
+
   private async readProjectsDocument(): Promise<ProjectsDocument> {
     const document = await this.files.read<unknown>(PROJECTS_FILE);
 

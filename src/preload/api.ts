@@ -8,6 +8,7 @@ export interface ProjectApi {
 }
 
 export interface ReportApi {
+  listDates: () => Promise<string[]>;
   load: (date: string) => Promise<Report | undefined>;
   save: (report: Report) => Promise<void>;
 }

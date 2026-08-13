@@ -6,7 +6,7 @@ import { DataReadError, DataWriteError } from '../domain/errors.js';
 
 export type FileSystem = Pick<
   typeof fileSystem,
-  'mkdir' | 'readFile' | 'rename' | 'unlink' | 'writeFile'
+  'mkdir' | 'readFile' | 'readdir' | 'rename' | 'unlink' | 'writeFile'
 >;
 
 const hasErrorCode = (error: unknown, code: string): boolean =>
@@ -59,6 +59,17 @@ export class JsonFileStore {
       }
 
       throw new DataWriteError('Local data could not be deleted.', { cause: error });
+    }
+  }
+
+  public async list(relativePath: string): Promise<string[]> {
+    try {
+      return await this.fs.readdir(this.getPath(relativePath));
+    } catch (error) {
+      if (hasErrorCode(error, 'ENOENT')) {
+        return [];
+      }
+      throw new DataReadError('Local data could not be listed.', { cause: error });
     }
   }
 

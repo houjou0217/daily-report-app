@@ -3,14 +3,14 @@ import { DataValidationError } from '../domain/errors.js';
 import type { Report } from '../domain/models.js';
 import { assertReport, assertReportDate } from '../domain/validation.js';
 
-type ReportIpcChannel = 'reports:load' | 'reports:save';
+type ReportIpcChannel = 'reports:list-dates' | 'reports:load' | 'reports:save';
 type IpcHandler = (_event: unknown, ...arguments_: unknown[]) => unknown;
 
 export interface ReportIpcRegistrar {
   handle: (channel: ReportIpcChannel, listener: IpcHandler) => void;
 }
 
-type ReportDataAccess = Pick<LocalDataStore, 'loadReport' | 'saveReport'>;
+type ReportDataAccess = Pick<LocalDataStore, 'listReportDates' | 'loadReport' | 'saveReport'>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -61,6 +61,11 @@ const parseReport = (value: unknown): Report => {
 };
 
 export const registerReportIpc = (ipc: ReportIpcRegistrar, dataStore: ReportDataAccess): void => {
+  ipc.handle('reports:list-dates', async (_event, ...arguments_) => {
+    assertNoExtraArguments(arguments_);
+    return dataStore.listReportDates();
+  });
+
   ipc.handle('reports:load', async (_event, date, ...arguments_) => {
     assertNoExtraArguments(arguments_);
     assertReportDate(date);

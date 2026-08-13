@@ -23,11 +23,16 @@ const copyReportButton = getElement<HTMLButtonElement>('#copy-report');
 const dateInput = getElement<HTMLInputElement>('#report-date');
 const emptyState = getElement<HTMLParagraphElement>('#empty-state');
 const projectNotice = getElement<HTMLParagraphElement>('#project-notice');
+const historyList = getElement<HTMLDivElement>('#history-list');
+const historyPanel = getElement<HTMLElement>('#history-panel');
+const historyStatus = getElement<HTMLParagraphElement>('#history-status');
 const previewButton = getElement<HTMLButtonElement>('#show-preview');
 const previewPanel = getElement<HTMLElement>('#preview-panel');
 const previewText = getElement<HTMLPreElement>('#preview-text');
 const reportPanel = getElement<HTMLElement>('.report-panel');
 const returnToInputButton = getElement<HTMLButtonElement>('#return-to-input');
+const returnFromHistoryButton = getElement<HTMLButtonElement>('#return-from-history');
+const showHistoryButton = getElement<HTMLButtonElement>('#show-history');
 const status = getElement<HTMLParagraphElement>('#app-status');
 
 let activeProjects: Project[] = [];
@@ -73,9 +78,51 @@ const setCopyFeedback = (message: string | undefined, isError = false): void => 
 
 const showInput = (): void => {
   previewPanel.hidden = true;
+  historyPanel.hidden = true;
   reportPanel.hidden = false;
   setCopyFeedback(undefined);
   previewButton.focus();
+};
+
+const formatHistoryDate = (date: string): string => {
+  const [year, month, day] = date.split('-');
+  return `${year}年${month}月${day}日`;
+};
+
+const showHistory = async (): Promise<void> => {
+  if (saveTimer !== undefined) {
+    window.clearTimeout(saveTimer);
+    saveTimer = undefined;
+    await saveReport(structuredClone(report));
+  }
+  reportPanel.hidden = true;
+  previewPanel.hidden = true;
+  historyPanel.hidden = false;
+  historyList.replaceChildren();
+  historyStatus.textContent = '読み込み中…';
+  try {
+    const dates = await window.dailyReport.reports.listDates();
+    if (dates.length === 0) {
+      historyStatus.textContent = '保存済みの日報はありません。';
+      return;
+    }
+    historyStatus.textContent = `${dates.length}件の日報`;
+    for (const date of dates) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-item';
+      button.textContent = formatHistoryDate(date);
+      button.addEventListener('click', async () => {
+        dateInput.value = date;
+        await loadReport(date);
+        showInput();
+        setStatus('過去の日報を読み込みました');
+      });
+      historyList.append(button);
+    }
+  } catch {
+    historyStatus.textContent = '過去日報一覧を読み込めませんでした。';
+  }
 };
 
 const showPreview = (): void => {
@@ -107,17 +154,18 @@ const scheduleSave = (): void => {
   if (saveTimer !== undefined) {
     window.clearTimeout(saveTimer);
   }
+  const reportToSave = structuredClone(report);
   setStatus('保存中…');
   saveTimer = window.setTimeout(() => {
-    void saveReport();
+    void saveReport(reportToSave);
   }, 400);
 };
 
-const saveReport = async (): Promise<void> => {
+const saveReport = async (reportToSave: Report = report): Promise<void> => {
   saveTimer = undefined;
-  report.updatedAt = new Date().toISOString();
+  reportToSave.updatedAt = new Date().toISOString();
   try {
-    await window.dailyReport.reports.save(report);
+    await window.dailyReport.reports.save(reportToSave);
     setStatus('ローカルに保存しました');
   } catch {
     setStatus('保存できませんでした。保存先の権限を確認してください。');
@@ -458,6 +506,10 @@ commentInput.addEventListener('input', () => {
 
 previewButton.addEventListener('click', showPreview);
 returnToInputButton.addEventListener('click', showInput);
+returnFromHistoryButton.addEventListener('click', showInput);
+showHistoryButton.addEventListener('click', () => {
+  void showHistory();
+});
 copyReportButton.addEventListener('click', async () => {
   const text = previewText.textContent;
   if (text === null || text.length === 0) {
@@ -480,7 +532,7 @@ copyReportButton.addEventListener('click', async () => {
 
 window.addEventListener('beforeunload', () => {
   if (saveTimer !== undefined) {
-    void saveReport();
+    void saveReport(structuredClone(report));
   }
 });
 

@@ -87,6 +87,20 @@ describe('LocalDataStore', () => {
     await expect(store.loadReport(report.date)).resolves.toBeUndefined();
   });
 
+  it('lists only valid saved report dates with the newest date first', async () => {
+    const store = new LocalDataStore(directory);
+    const firstReport = createReport();
+    const secondReport = { ...createReport(), date: '2026-08-12' };
+
+    await store.saveReport(firstReport);
+    await store.saveReport(secondReport);
+    await fs.mkdir(join(directory, 'reports'), { recursive: true });
+    await fs.writeFile(join(directory, 'reports', 'not-a-report.json'), '{}', 'utf8');
+    await fs.writeFile(join(directory, 'reports', '2026-02-30.json'), '{}', 'utf8');
+
+    await expect(store.listReportDates()).resolves.toEqual(['2026-08-12', '2026-08-11']);
+  });
+
   it('saves an unfinished work block as a local draft', async () => {
     const store = new LocalDataStore(directory);
     const draft = createReport();

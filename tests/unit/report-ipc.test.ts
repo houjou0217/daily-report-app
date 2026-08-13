@@ -39,6 +39,7 @@ const createHarness = () => {
     },
   };
   const dataStore = {
+    listReportDates: async () => ['2026-08-12'],
     loadReport: async (date: string) => (date === '2026-08-12' ? createReport() : undefined),
     saveReport: async (report: Report) => {
       savedReports.push(report);
@@ -62,6 +63,7 @@ describe('report IPC boundary', () => {
     const { invoke, savedReports } = createHarness();
     const report = createReport();
 
+    await expect(invoke('reports:list-dates')).resolves.toEqual(['2026-08-12']);
     await expect(invoke('reports:load', report.date)).resolves.toEqual(report);
     await expect(invoke('reports:save', report)).resolves.toBeUndefined();
     expect(savedReports).toEqual([report]);
@@ -71,6 +73,7 @@ describe('report IPC boundary', () => {
     const { invoke, savedReports } = createHarness();
     const report = createReport();
 
+    await expect(invoke('reports:list-dates', 'unexpected')).rejects.toBeInstanceOf(DataValidationError);
     await expect(invoke('reports:load', '2026-02-30')).rejects.toBeInstanceOf(DataValidationError);
     await expect(invoke('reports:save', { ...report, command: 'unexpected' })).rejects.toBeInstanceOf(
       DataValidationError,
