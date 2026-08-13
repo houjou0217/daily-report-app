@@ -1,4 +1,4 @@
-import type { Project, Report, WorkBlock } from '../domain/models.js';
+import type { CreateProjectInput, Project, Report, UpdateProjectInput, WorkBlock } from '../domain/models.js';
 import { formatReport, validateReportForPreview } from '../domain/report-formatter.js';
 import {
   calculateDuration,
@@ -16,6 +16,7 @@ const getElement = <ElementType extends HTMLElement>(selector: string): ElementT
 };
 
 const addBlockButton = getElement<HTMLButtonElement>('#add-block');
+const archiveToggle = getElement<HTMLButtonElement>('#archive-toggle');
 const blockList = getElement<HTMLDivElement>('#block-list');
 const commentInput = getElement<HTMLTextAreaElement>('#report-comment');
 const copyFeedback = getElement<HTMLParagraphElement>('#copy-feedback');
@@ -26,6 +27,21 @@ const projectNotice = getElement<HTMLParagraphElement>('#project-notice');
 const historyList = getElement<HTMLDivElement>('#history-list');
 const historyPanel = getElement<HTMLElement>('#history-panel');
 const historyStatus = getElement<HTMLParagraphElement>('#history-status');
+const projectCount = getElement<HTMLParagraphElement>('#project-count');
+const projectEmptyState = getElement<HTMLParagraphElement>('#project-empty-state');
+const projectForm = getElement<HTMLFormElement>('#project-form');
+const projectFormCancel = getElement<HTMLButtonElement>('#form-cancel');
+const projectFormMessage = getElement<HTMLParagraphElement>('#form-message');
+const projectFormTitle = getElement<HTMLHeadingElement>('#form-title');
+const projectIdInput = getElement<HTMLInputElement>('#project-id');
+const projectNameInput = getElement<HTMLInputElement>('#project-name');
+const projectCodeInput = getElement<HTMLInputElement>('#project-code');
+const projectColorInput = getElement<HTMLInputElement>('#project-color');
+const projectList = getElement<HTMLDivElement>('#project-list');
+const projectPanel = getElement<HTMLElement>('#project-panel');
+const projectSubmitButton = getElement<HTMLButtonElement>('#form-submit');
+const navProjectsButton = getElement<HTMLButtonElement>('#nav-projects');
+const navReportButton = getElement<HTMLButtonElement>('#nav-report');
 const previewButton = getElement<HTMLButtonElement>('#show-preview');
 const previewPanel = getElement<HTMLElement>('#preview-panel');
 const previewText = getElement<HTMLPreElement>('#preview-text');
@@ -36,10 +52,13 @@ const showHistoryButton = getElement<HTMLButtonElement>('#show-history');
 const status = getElement<HTMLParagraphElement>('#app-status');
 
 let activeProjects: Project[] = [];
+let projects: Project[] = [];
 let report: Report;
 let saveTimer: number | undefined;
 let loading = false;
 let previewIssues = new Map<string, string[]>();
+let showArchivedProjects = false;
+let projectColorWasChanged = false;
 
 const dateToInputValue = (date: Date): string => {
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
@@ -79,7 +98,12 @@ const setCopyFeedback = (message: string | undefined, isError = false): void => 
 const showInput = (): void => {
   previewPanel.hidden = true;
   historyPanel.hidden = true;
+  projectPanel.hidden = true;
   reportPanel.hidden = false;
+  navReportButton.classList.add('is-active');
+  navReportButton.setAttribute('aria-current', 'page');
+  navProjectsButton.classList.remove('is-active');
+  navProjectsButton.removeAttribute('aria-current');
   setCopyFeedback(undefined);
   previewButton.focus();
 };
@@ -123,6 +147,152 @@ const showHistory = async (): Promise<void> => {
   } catch {
     historyStatus.textContent = '過去日報一覧を読み込めませんでした。';
   }
+};
+
+const setProjectFormMessage = (message: string | undefined): void => {
+  projectFormMessage.hidden = message === undefined;
+  projectFormMessage.textContent = message ?? '';
+};
+
+const setProjectBusy = (busy: boolean): void => {
+  projectSubmitButton.disabled = busy;
+  archiveToggle.disabled = busy;
+};
+
+const resetProjectForm = (): void => {
+  projectForm.reset();
+  projectIdInput.value = '';
+  projectColorInput.value = '#2f746d';
+  projectColorWasChanged = false;
+  projectFormTitle.textContent = '新規案件を登録';
+  projectSubmitButton.textContent = '登録する';
+  projectFormCancel.hidden = true;
+  setProjectFormMessage(undefined);
+};
+
+const startProjectEditing = (project: Project): void => {
+  projectIdInput.value = project.id;
+  projectNameInput.value = project.name;
+  projectCodeInput.value = project.code;
+  projectColorInput.value = project.color;
+  projectColorWasChanged = true;
+  projectFormTitle.textContent = '案件を編集';
+  projectSubmitButton.textContent = '変更を保存';
+  projectFormCancel.hidden = false;
+  setProjectFormMessage(undefined);
+  projectNameInput.focus();
+};
+
+const formatProjectDate = (dateTime: string): string => {
+  const date = new Date(dateTime);
+  return Number.isNaN(date.getTime())
+    ? '登録日: 不明'
+    : `登録日: ${new Intl.DateTimeFormat('ja-JP', { dateStyle: 'medium' }).format(date)}`;
+};
+
+const renderProjects = (): void => {
+  const visibleProjects = projects.filter((project) => project.archived === showArchivedProjects);
+  projectList.replaceChildren();
+  projectEmptyState.hidden = visibleProjects.length > 0;
+  projectCount.textContent = showArchivedProjects
+    ? `アーカイブ済み ${visibleProjects.length}件`
+    : `利用中 ${visibleProjects.length}件`;
+  archiveToggle.textContent = showArchivedProjects ? '利用中の案件を表示' : 'アーカイブを表示';
+  archiveToggle.setAttribute('aria-pressed', String(showArchivedProjects));
+
+  for (const project of visibleProjects) {
+    const row = document.createElement('article');
+    row.className = 'project-row';
+    const details = document.createElement('div');
+    details.className = 'project-details';
+    const colorBar = document.createElement('span');
+    colorBar.className = 'project-color';
+    colorBar.style.backgroundColor = project.color;
+    colorBar.setAttribute('aria-hidden', 'true');
+    const name = document.createElement('h3');
+    name.textContent = project.name;
+    const meta = document.createElement('p');
+    meta.textContent = [project.code, formatProjectDate(project.createdAt)].filter(Boolean).join(' ・ ');
+    details.append(colorBar, name, meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'project-actions';
+    const addAction = (label: string, onClick: () => void): void => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'icon-button';
+      button.textContent = label;
+      button.addEventListener('click', onClick);
+      actions.append(button);
+    };
+    addAction('編集', () => startProjectEditing(project));
+    addAction(project.archived ? '復元' : '保管', () => {
+      void saveProjectChange(project, { archived: !project.archived });
+    });
+    addAction('削除', () => {
+      if (window.confirm(`「${project.name}」を削除しますか？`)) {
+        void deleteProject(project);
+      }
+    });
+    row.append(details, actions);
+    projectList.append(row);
+  }
+};
+
+const refreshProjects = async (): Promise<void> => {
+  setProjectBusy(true);
+  try {
+    projects = await window.dailyReport.projects.list();
+    activeProjects = projects.filter((project) => !project.archived);
+    renderProjects();
+    renderBlocks();
+  } catch {
+    setStatus('案件一覧を読み込めませんでした');
+  } finally {
+    setProjectBusy(false);
+  }
+};
+
+const saveProjectChange = async (project: Project, input: UpdateProjectInput): Promise<void> => {
+  setProjectBusy(true);
+  try {
+    await window.dailyReport.projects.update(project.id, input);
+    setStatus(project.archived ? '案件を復元しました' : '案件をアーカイブしました');
+    await refreshProjects();
+  } catch {
+    setProjectFormMessage('案件を保存できませんでした。入力内容を確認してください。');
+  } finally {
+    setProjectBusy(false);
+  }
+};
+
+const deleteProject = async (project: Project): Promise<void> => {
+  setProjectBusy(true);
+  try {
+    await window.dailyReport.projects.delete(project.id);
+    if (projectIdInput.value === project.id) {
+      resetProjectForm();
+    }
+    setStatus('案件を削除しました');
+    await refreshProjects();
+  } catch {
+    setProjectFormMessage('案件を削除できませんでした。');
+  } finally {
+    setProjectBusy(false);
+  }
+};
+
+const showProjectManagement = async (): Promise<void> => {
+  reportPanel.hidden = true;
+  previewPanel.hidden = true;
+  historyPanel.hidden = true;
+  projectPanel.hidden = false;
+  navReportButton.classList.remove('is-active');
+  navReportButton.removeAttribute('aria-current');
+  navProjectsButton.classList.add('is-active');
+  navProjectsButton.setAttribute('aria-current', 'page');
+  await refreshProjects();
+  projectNameInput.focus();
 };
 
 const showPreview = (): void => {
@@ -475,7 +645,8 @@ const loadReport = async (date: string): Promise<void> => {
 const initialize = async (): Promise<void> => {
   dateInput.value = dateToInputValue(new Date());
   try {
-    activeProjects = (await window.dailyReport.projects.list()).filter((project) => !project.archived);
+    projects = await window.dailyReport.projects.list();
+    activeProjects = projects.filter((project) => !project.archived);
   } catch {
     activeProjects = [];
     setStatus('案件一覧を読み込めませんでした');
@@ -506,6 +677,53 @@ commentInput.addEventListener('input', () => {
 
 previewButton.addEventListener('click', showPreview);
 returnToInputButton.addEventListener('click', showInput);
+navProjectsButton.addEventListener('click', () => {
+  void showProjectManagement();
+});
+navReportButton.addEventListener('click', showInput);
+archiveToggle.addEventListener('click', () => {
+  showArchivedProjects = !showArchivedProjects;
+  renderProjects();
+});
+projectFormCancel.addEventListener('click', resetProjectForm);
+projectColorInput.addEventListener('input', () => {
+  projectColorWasChanged = true;
+});
+projectForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const name = projectNameInput.value.trim();
+  const code = projectCodeInput.value.trim();
+  const id = projectIdInput.value;
+  if (name.length === 0) {
+    setProjectFormMessage('案件名を入力してください。');
+    projectNameInput.focus();
+    return;
+  }
+
+  setProjectBusy(true);
+  setProjectFormMessage(undefined);
+  try {
+    if (id.length === 0) {
+      const input: CreateProjectInput = {
+        name,
+        ...(code.length === 0 ? {} : { code }),
+        ...(projectColorWasChanged ? { color: projectColorInput.value } : {}),
+      };
+      await window.dailyReport.projects.create(input);
+      setStatus('案件を登録しました');
+    } else {
+      const input: UpdateProjectInput = { name, code, color: projectColorInput.value };
+      await window.dailyReport.projects.update(id, input);
+      setStatus('案件を更新しました');
+    }
+    resetProjectForm();
+    await refreshProjects();
+  } catch {
+    setProjectFormMessage('案件を保存できませんでした。入力内容を確認してください。');
+  } finally {
+    setProjectBusy(false);
+  }
+});
 returnFromHistoryButton.addEventListener('click', showInput);
 showHistoryButton.addEventListener('click', () => {
   void showHistory();

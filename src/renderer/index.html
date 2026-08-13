@@ -16,6 +16,10 @@
         <p class="eyebrow">OFFLINE DESKTOP APP</p>
         <h1 id="app-title">日報作成</h1>
         <p class="description">作業ブロックを入力すると、ローカルへ自動保存します。</p>
+        <nav class="app-navigation" aria-label="画面切替">
+          <button class="nav-button is-active" id="nav-report" type="button" aria-current="page">日報作成</button>
+          <button class="nav-button" id="nav-projects" type="button">案件管理</button>
+        </nav>
       </header>
 
       <section class="report-panel" aria-labelledby="report-title">
@@ -71,6 +75,43 @@
         </div>
         <p class="history-status" id="history-status" role="status">読み込み中…</p>
         <div class="history-list" id="history-list"></div>
+      </section>
+
+      <section class="project-panel" id="project-panel" aria-labelledby="project-list-title" hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">PROJECT SETTINGS</p>
+            <h2 id="project-list-title">案件管理</h2>
+            <p class="panel-description" id="project-count">読み込み中…</p>
+          </div>
+          <button class="secondary-button" id="archive-toggle" type="button" aria-pressed="false">アーカイブを表示</button>
+        </div>
+
+        <form class="project-form" id="project-form" novalidate>
+          <input id="project-id" type="hidden" />
+          <div class="form-heading">
+            <h3 id="form-title">新規案件を登録</h3>
+            <button class="text-button" id="form-cancel" type="button" hidden>編集をやめる</button>
+          </div>
+          <div class="form-fields">
+            <label>
+              <span>案件名 <strong aria-hidden="true">*</strong></span>
+              <input id="project-name" name="name" type="text" maxlength="100" required autocomplete="off" />
+            </label>
+            <label>
+              <span>案件コード</span>
+              <input id="project-code" name="code" type="text" maxlength="50" autocomplete="off" />
+            </label>
+            <label class="color-field">
+              <span>案件カラー</span>
+              <input id="project-color" name="color" type="color" value="#2f746d" />
+            </label>
+          </div>
+          <p class="form-message" id="form-message" role="alert" hidden></p>
+          <button class="primary-button" id="form-submit" type="submit">登録する</button>
+        </form>
+        <div class="project-list" id="project-list" aria-live="polite"></div>
+        <p class="empty-state" id="project-empty-state" hidden>表示する案件はありません。</p>
       </section>
     </main>
   </body>
