@@ -51,9 +51,13 @@
             <p class="eyebrow">REPORT PREVIEW</p>
             <h2 id="preview-title">日報プレビュー</h2>
           </div>
-          <button class="secondary-button" id="return-to-input" type="button">＜ 入力に戻る</button>
+          <div class="preview-actions">
+            <button class="copy-button" id="copy-report" type="button">クリップボードにコピー</button>
+            <button class="secondary-button" id="return-to-input" type="button">＜ 入力に戻る</button>
+          </div>
         </div>
         <pre class="preview-text" id="preview-text" tabindex="0"></pre>
+        <p class="copy-feedback" id="copy-feedback" role="status" hidden></p>
       </section>
     </main>
   </body>

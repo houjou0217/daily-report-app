@@ -16,6 +16,10 @@ const api: DailyReportApi = {
     load: (date) => ipcRenderer.invoke('reports:load', date) as ReturnType<DailyReportApi['reports']['load']>,
     save: (report) => ipcRenderer.invoke('reports:save', report) as ReturnType<DailyReportApi['reports']['save']>,
   },
+  clipboard: {
+    writeReport: (text) =>
+      ipcRenderer.invoke('clipboard:write-report', text) as ReturnType<DailyReportApi['clipboard']['writeReport']>,
+  },
 };
 
 contextBridge.exposeInMainWorld('dailyReport', api);

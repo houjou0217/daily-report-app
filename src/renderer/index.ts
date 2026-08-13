@@ -18,6 +18,8 @@ const getElement = <ElementType extends HTMLElement>(selector: string): ElementT
 const addBlockButton = getElement<HTMLButtonElement>('#add-block');
 const blockList = getElement<HTMLDivElement>('#block-list');
 const commentInput = getElement<HTMLTextAreaElement>('#report-comment');
+const copyFeedback = getElement<HTMLParagraphElement>('#copy-feedback');
+const copyReportButton = getElement<HTMLButtonElement>('#copy-report');
 const dateInput = getElement<HTMLInputElement>('#report-date');
 const emptyState = getElement<HTMLParagraphElement>('#empty-state');
 const projectNotice = getElement<HTMLParagraphElement>('#project-notice');
@@ -63,9 +65,16 @@ const setStatus = (message: string): void => {
   status.textContent = message;
 };
 
+const setCopyFeedback = (message: string | undefined, isError = false): void => {
+  copyFeedback.hidden = message === undefined;
+  copyFeedback.textContent = message ?? '';
+  copyFeedback.classList.toggle('copy-error', isError);
+};
+
 const showInput = (): void => {
   previewPanel.hidden = true;
   reportPanel.hidden = false;
+  setCopyFeedback(undefined);
   previewButton.focus();
 };
 
@@ -85,6 +94,7 @@ const showPreview = (): void => {
   }
 
   previewText.textContent = formatReport(report);
+  setCopyFeedback(undefined);
   reportPanel.hidden = true;
   previewPanel.hidden = false;
   previewText.focus();
@@ -448,6 +458,25 @@ commentInput.addEventListener('input', () => {
 
 previewButton.addEventListener('click', showPreview);
 returnToInputButton.addEventListener('click', showInput);
+copyReportButton.addEventListener('click', async () => {
+  const text = previewText.textContent;
+  if (text === null || text.length === 0) {
+    setCopyFeedback('コピーする日報がありません。', true);
+    return;
+  }
+
+  copyReportButton.disabled = true;
+  setCopyFeedback('コピー中…');
+  try {
+    await window.dailyReport.clipboard.writeReport(text);
+    setCopyFeedback('クリップボードにコピーしました。');
+  } catch {
+    setCopyFeedback('コピーできませんでした。日報テキストを選択して手動でコピーしてください。', true);
+    previewText.focus();
+  } finally {
+    copyReportButton.disabled = false;
+  }
+});
 
 window.addEventListener('beforeunload', () => {
   if (saveTimer !== undefined) {

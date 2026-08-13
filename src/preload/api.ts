@@ -12,9 +12,14 @@ export interface ReportApi {
   save: (report: Report) => Promise<void>;
 }
 
+export interface ClipboardApi {
+  writeReport: (text: string) => Promise<void>;
+}
+
 export interface DailyReportApi {
   projects: ProjectApi;
   reports: ReportApi;
+  clipboard: ClipboardApi;
 }
 
 declare global {

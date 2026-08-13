@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, clipboard, ipcMain } from 'electron';
 
+import { registerClipboardIpc } from './clipboard-ipc.js';
 import { LocalDataStore } from '../data/local-data-store.js';
 import { registerProjectIpc } from './project-ipc.js';
 import { registerReportIpc } from './report-ipc.js';
@@ -39,6 +40,7 @@ app.on('web-contents-created', (_event, contents) => {
 
 app.whenReady().then(() => {
   const dataStore = new LocalDataStore(app.getPath('userData'));
+  registerClipboardIpc(ipcMain, clipboard);
   registerProjectIpc(ipcMain, dataStore);
   registerReportIpc(ipcMain, dataStore);
   createMainWindow();
