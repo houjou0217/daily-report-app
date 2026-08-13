@@ -1,4 +1,5 @@
 import type { Project, Report, WorkBlock } from '../domain/models.js';
+import { formatReport, validateReportForPreview } from '../domain/report-formatter.js';
 import {
   calculateDuration,
   isEndTimeBeforeStartTime,
@@ -20,12 +21,18 @@ const commentInput = getElement<HTMLTextAreaElement>('#report-comment');
 const dateInput = getElement<HTMLInputElement>('#report-date');
 const emptyState = getElement<HTMLParagraphElement>('#empty-state');
 const projectNotice = getElement<HTMLParagraphElement>('#project-notice');
+const previewButton = getElement<HTMLButtonElement>('#show-preview');
+const previewPanel = getElement<HTMLElement>('#preview-panel');
+const previewText = getElement<HTMLPreElement>('#preview-text');
+const reportPanel = getElement<HTMLElement>('.report-panel');
+const returnToInputButton = getElement<HTMLButtonElement>('#return-to-input');
 const status = getElement<HTMLParagraphElement>('#app-status');
 
 let activeProjects: Project[] = [];
 let report: Report;
 let saveTimer: number | undefined;
 let loading = false;
+let previewIssues = new Map<string, string[]>();
 
 const dateToInputValue = (date: Date): string => {
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
@@ -54,6 +61,33 @@ const createWorkBlock = (project: Project): WorkBlock => ({
 
 const setStatus = (message: string): void => {
   status.textContent = message;
+};
+
+const showInput = (): void => {
+  previewPanel.hidden = true;
+  reportPanel.hidden = false;
+  previewButton.focus();
+};
+
+const showPreview = (): void => {
+  const issues = validateReportForPreview(report);
+  previewIssues = new Map();
+  for (const issue of issues) {
+    const messages = previewIssues.get(issue.blockId) ?? [];
+    messages.push(issue.message);
+    previewIssues.set(issue.blockId, messages);
+  }
+  if (issues.length > 0) {
+    renderBlocks();
+    setStatus('必須項目または時刻を確認してください。');
+    document.querySelector<HTMLElement>('.block-validation')?.focus();
+    return;
+  }
+
+  previewText.textContent = formatReport(report);
+  reportPanel.hidden = true;
+  previewPanel.hidden = false;
+  previewText.focus();
 };
 
 const scheduleSave = (): void => {
@@ -86,6 +120,7 @@ const updateBlock = (id: string, change: Partial<WorkBlock>, rerender = false): 
     return;
   }
   Object.assign(block, change);
+  previewIssues.delete(id);
   if (rerender) {
     report.blocks = sortWorkBlocksByStartTime(report.blocks);
     renderBlocks();
@@ -200,6 +235,11 @@ const renderBlocks = (): void => {
     const card = document.createElement('article');
     card.className = 'block-card';
 
+    const issues = previewIssues.get(block.id);
+    if (issues !== undefined) {
+      card.classList.add('block-card-invalid');
+    }
+
     const header = document.createElement('header');
     header.className = 'block-header';
     const title = document.createElement('h3');
@@ -246,6 +286,13 @@ const renderBlocks = (): void => {
 
     const body = document.createElement('div');
     body.className = 'block-body';
+    if (issues !== undefined) {
+      const validation = document.createElement('p');
+      validation.className = 'block-validation block-field-wide';
+      validation.tabIndex = -1;
+      validation.textContent = issues.join(' ');
+      body.append(validation);
+    }
     const projectField = document.createElement('label');
     projectField.className = 'block-field';
     const projectCaption = document.createElement('span');
@@ -353,6 +400,7 @@ const loadReport = async (date: string): Promise<void> => {
     const savedReport = await window.dailyReport.reports.load(date);
     report = savedReport ?? createEmptyReport(date);
     report.blocks = sortWorkBlocksByStartTime(report.blocks);
+    previewIssues = new Map();
     commentInput.value = report.comment;
     renderBlocks();
     setStatus(savedReport === undefined ? '新しい日報を作成しました' : '保存済みの日報を復元しました');
@@ -397,6 +445,9 @@ commentInput.addEventListener('input', () => {
   report.comment = commentInput.value;
   scheduleSave();
 });
+
+previewButton.addEventListener('click', showPreview);
+returnToInputButton.addEventListener('click', showInput);
 
 window.addEventListener('beforeunload', () => {
   if (saveTimer !== undefined) {

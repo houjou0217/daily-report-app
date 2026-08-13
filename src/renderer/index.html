@@ -42,6 +42,18 @@
           <span>本日の所感・共有事項</span>
           <textarea id="report-comment" rows="3" maxlength="2000" placeholder="任意で入力"></textarea>
         </label>
+        <button class="preview-button" id="show-preview" type="button">プレビューを表示 →</button>
+      </section>
+
+      <section class="preview-panel" id="preview-panel" aria-labelledby="preview-title" hidden>
+        <div class="preview-heading">
+          <div>
+            <p class="eyebrow">REPORT PREVIEW</p>
+            <h2 id="preview-title">日報プレビュー</h2>
+          </div>
+          <button class="secondary-button" id="return-to-input" type="button">＜ 入力に戻る</button>
+        </div>
+        <pre class="preview-text" id="preview-text" tabindex="0"></pre>
       </section>
     </main>
   </body>
