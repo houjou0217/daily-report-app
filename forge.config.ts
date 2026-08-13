@@ -15,9 +15,12 @@ const productionContentSecurityPolicy = [
   "form-action 'none'",
 ].join('; ');
 
+const electronZipDir = process.env.ELECTRON_ZIP_DIR;
+
 const config = {
   packagerConfig: {
     asar: true,
+    ...(electronZipDir === undefined ? {} : { electronZipDir }),
   },
   makers: [new MakerZIP({}, ['darwin', 'win32'])],
   plugins: [
