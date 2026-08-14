@@ -84,7 +84,8 @@ Codexは既存Markdown/HTML資料を削除・上書きしてはならない。
 │  ├─ renderer/
 │  │  ├─ index.html
 │  │  ├─ index.ts
-│  │  └─ styles.css
+│  │  └─ styles/
+│  │     └─ app.css
 │  ├─ domain/
 │  └─ data/
 └─ tests/

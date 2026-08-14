@@ -11,8 +11,8 @@ const config: Configuration = {
     new CopyPlugin({
       patterns: [
         {
-          from: './src/renderer/styles.css',
-          to: 'styles.css',
+          from: './src/renderer/styles/app.css',
+          to: 'styles/app.css',
         },
       ],
     }),
